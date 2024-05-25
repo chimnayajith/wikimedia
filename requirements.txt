@@ -1,4 +1,4 @@
 flask==3.0.3
 pandas==1.5.3
 APScheduler==3.10.4
-psycopg2-binary==2.9.9
+mysql==0.0.3

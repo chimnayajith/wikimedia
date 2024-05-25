@@ -2,7 +2,7 @@ from datetime import datetime as dt
 import pandas as pd
 import os
 import csv
-import psycopg2
+import mysql.connector
 
 dbname = os.environ.get('DB_NAME')
 dbuser = os.environ.get('DB_USER')
@@ -10,7 +10,7 @@ dbpassword = os.environ.get('DB_PASSWORD')
 dbhost = os.environ.get('DB_HOST')
 dbport = os.environ.get('DB_PORT')
 
-conn = psycopg2.connect(dbname=dbname, user=dbuser, password=dbpassword, host=dbhost, port=dbport)
+conn = mysql.connector.connect(dbname=dbname, user=dbuser, password=dbpassword, host=dbhost, port=dbport)
 cur = conn.cursor()
 
 def fetch_data():
