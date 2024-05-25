@@ -13,17 +13,7 @@ dbport = os.environ.get('DB_PORT')
 conn = mysql.connector.connect(dbname=dbname, user=dbuser, password=dbpassword, host=dbhost, port=dbport)
 cur = conn.cursor()
 
-def fetch_data():
-    with open('query.sql', 'r') as f:
-        sql = f.read()
-    cur.execute(sql)
-    rows = cur.fetchall()
-
-    with open(f'{stats_path}{curr_time.strftime("%d-%m-%Y").lower()}' , 'w') as f:
-        writer = csv.DictWriter(f)
-        writer.writerows(rows)
-    
-    project_labels = {
+project_labels = {
         'Wp': 'Wikipedia',
         'Wt': 'Wiktionary',
         'Wq': 'Wikiquote',
@@ -32,16 +22,7 @@ def fetch_data():
         'Wn': 'Wikinews'
     }
 
-    stats_path = 'stats/'
-    curr_time = dt.now()
-    curr_file_path = f'{stats_path}{curr_time.strftime("%d-%m-%Y").lower()}.tsv'
-    df = pd.read_csv(curr_file_path, sep='\t')
-
-    df['Project'] = df.prefix.apply(lambda x:project_labels[x.split('/')[0]])
-    df['Language Code'] = df.prefix.apply(lambda x:x.split('/')[1])
-    df.drop('prefix', axis=1, inplace=True)
-
-    column_labels = {
+column_labels = {
         'edit_count': 'Edits (all time)',
         'actor_count': 'Editors (all time)',
         'pages_count': 'Pages (all time)',
@@ -50,12 +31,31 @@ def fetch_data():
         'avg_edits_3M': 'Average Edits per Month',
         'avg_editors_3M': 'Average Editors per Month'}
 
-    df.rename(column_labels, axis=1, inplace=True)
+def fetch_data():
+    with open('query.sql', 'r') as f:
+        sql = f.read()
+    cur.execute(sql)
+    rows = cur.fetchall()
 
+    # with open(f'{stats_path}{curr_time.strftime("%d-%m-%Y").lower()}.tsv' , 'w') as f:
+    #     writer = csv.DictWriter(f)
+    #     writer.writerows(rows)
+    
+    stats_path = 'stats/'
+    curr_time = dt.now()
+    curr_file_path = f'{stats_path}{curr_time.strftime("%d-%m-%Y").lower()}.tsv'
+    
+    df = pd.read_csv(curr_file_path, sep=',')
+    df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
+    df[['Project', 'Language Code']] = df.iloc[:,0].str.split('/', expand=True)
+    df.drop(df.columns[0], axis=1, inplace=True)    
+    df.rename(column_labels,axis=1, inplace=True)
+    df['Project'] = df['Project'].map(project_labels)
+    
     df = df[['Project', 'Language Code', 
             'Average Edits per Month', 'Average Editors per Month', 
             'Edits (all time)', 'Editors (all time)', 
             'Pages (all time)', 'Bytes added (previous month)',
             'Bytes removed (previous month)']]
-
+    print(df)
     df.to_csv(curr_file_path, sep='\t', index=False)

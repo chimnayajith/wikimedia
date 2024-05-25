@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(fetch_data, 'interval', days=7)
+job = scheduler.add_job(fetch_data, 'interval', minutes=0.1)
 scheduler.start()
 
 
@@ -31,7 +31,7 @@ def get_latest_data_file(stats_path):
 def fetch():
     stats_path = 'stats/'
     latest_file_path = get_latest_data_file(stats_path)
-    main_df = pd.read_csv(latest_file_path, sep='\t')
+    main_df = pd.read_csv(latest_file_path, sep=',')
     wikis_list = list(main_df.Project.unique())
     params = main_df.columns.tolist()[2:]
     min = main_df[params[0]].min()
