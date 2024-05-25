@@ -10,8 +10,8 @@ dbpassword = os.environ.get('DB_PASSWORD')
 dbhost = os.environ.get('DB_HOST')
 dbport = os.environ.get('DB_PORT')
 
-conn = mysql.connector.connect(dbname=dbname, user=dbuser, password=dbpassword, host=dbhost, port=dbport)
-cur = conn.cursor()
+# conn = mysql.connector.connect(dbname=dbname, user=dbuser, password=dbpassword, host=dbhost, port=dbport)
+# cur = conn.cursor()
 
 project_labels = {
         'Wp': 'Wikipedia',
@@ -34,19 +34,16 @@ column_labels = {
 def fetch_data():
     with open('query.sql', 'r') as f:
         sql = f.read()
-    cur.execute(sql)
-    rows = cur.fetchall()
+#     cur.execute(sql)
+#     rows = cur.fetchall()
+#     column_headers = (desc[0] for desc in cur.description)
 
-    # with open(f'{stats_path}{curr_time.strftime("%d-%m-%Y").lower()}.tsv' , 'w') as f:
-    #     writer = csv.DictWriter(f)
-    #     writer.writerows(rows)
-    
     stats_path = 'stats/'
     curr_time = dt.now()
     curr_file_path = f'{stats_path}{curr_time.strftime("%d-%m-%Y").lower()}.tsv'
     
-    df = pd.read_csv(curr_file_path, sep=',')
-    df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
+    df = pd.DataFrame(rows , columns=column_headers)
+    print(df)
     df[['Project', 'Language Code']] = df.iloc[:,0].str.split('/', expand=True)
     df.drop(df.columns[0], axis=1, inplace=True)    
     df.rename(column_labels,axis=1, inplace=True)
@@ -57,5 +54,5 @@ def fetch_data():
             'Edits (all time)', 'Editors (all time)', 
             'Pages (all time)', 'Bytes added (previous month)',
             'Bytes removed (previous month)']]
-    print(df)
+
     df.to_csv(curr_file_path, sep='\t', index=False)

@@ -5,11 +5,12 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import pandas as pd
 import glob
 import os
+import numpy as np
 
 app = Flask(__name__)
 
 scheduler = BackgroundScheduler()
-job = scheduler.add_job(fetch_data, 'interval', minutes=0.1)
+job = scheduler.add_job(fetch_data, 'interval', minutes=10)
 scheduler.start()
 
 
@@ -31,13 +32,13 @@ def get_latest_data_file(stats_path):
 def fetch():
     stats_path = 'stats/'
     latest_file_path = get_latest_data_file(stats_path)
-    main_df = pd.read_csv(latest_file_path, sep=',')
-    wikis_list = list(main_df.Project.unique())
+    main_df = pd.read_csv(latest_file_path, sep='\t')
+    wikis_list = list(main_df['Project'].unique())
     params = main_df.columns.tolist()[2:]
-    min = main_df[params[0]].min()
-    max = main_df[params[0]].max()
+    min = str(main_df[params[0]].min())
+    max = str(main_df[params[0]].max())
+
     overview_data = main_df.to_dict('records')
-    
     return {
         "wikis_list" : wikis_list,
         "params" : params,
